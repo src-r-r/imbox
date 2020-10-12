@@ -3,6 +3,7 @@ import logging
 
 from imbox.query import build_search_query
 from imbox.parser import fetch_email_by_uid
+from imaplib import IMAP4
 
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,14 @@ class Messages:
 
     def _query_uids(self, **kwargs):
         query_ = build_search_query(self.IMAP_ATTRIBUTE_LOOKUP, **kwargs)
-        _, data = self.connection.uid('search', None, query_)
+        try:
+            _, data = self.connection.uid('search', None, query_)
+        except IMAP4.error as err:
+            logger.error(err)
+            logging.error("kwargs=%s", kwargs)
+            logging.error("query_=%s", kwargs)
+            self.connection.select()
+            _, data = self.connection.uid('search', None, query_)
         if data[0] is None:
             return []
         return data[0].split()

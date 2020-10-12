@@ -147,7 +147,10 @@ def fetch_email_by_uid(uid, connection, parser_policy):
     message, data = connection.uid('fetch', uid, '(BODY.PEEK[] FLAGS)')
     logger.debug("Fetched message for UID {}".format(int(uid)))
 
-    raw_headers, raw_email = data[0]
+    try:
+        raw_headers, raw_email = data[0]
+    except ValueError as exc:
+        import ipdb; ipdb.set_trace()
 
     email_object = parse_email(raw_email, policy=parser_policy)
     flags = parse_flags(raw_headers.decode())
